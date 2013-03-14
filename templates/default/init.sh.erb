@@ -1,0 +1,44 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          managing projects.arcanio.com
+# Required-Start:    
+# Required-Stop:     
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Kurze Beschreibung
+# Description:       Längere Bechreibung
+### END INIT INFO
+# Author: Robin Wenglewski <robin.wenglewski@arcanio.com>
+
+export RBENV_ROOT="/usr/local/rbenv"
+export PATH="$RBENV_ROOT/bin:$RBENV_ROOT/shims:$PATH"
+export DESC=<%= @desc %>
+export RAILS_ENV=<%= @rails_env %>
+
+start() {
+        echo -n "Starting $DESC: \n"
+        
+        su - <%= @user %> -c 'cd <%= @deploy_to %>/current && bundle exec unicorn -c <%= @deploy_to %>/current/config/unicorn.conf -D -E <%= @rails_env %>'
+}
+
+stop() {
+  echo -n "Stoping $DESC: \n"
+  kill -9 `cat <%= @deploy_to %>/shared/pids/unicorn.pid`
+  rm -rf <%= @deploy_to %>/shared/unicorn.sock      
+}
+
+# Aktionen
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,30 @@
+{
+  "maintainer_email": "robin@wenglewski.de",
+  "name": "rails_app",
+  "attributes": {
+  },
+  "dependencies": {
+  },
+  "platforms": {
+    "ubuntu": ">= 10.04"
+  },
+  "recipes": {
+  },
+  "providing": {
+  },
+  "conflicting": {
+  },
+  "recommendations": {
+  },
+  "license": "All rights reserved",
+  "suggestions": {
+  },
+  "replacing": {
+  },
+  "version": "0.0.1",
+  "groupings": {
+  },
+  "maintainer": "Robin Wenglewski",
+  "long_description": "Description\n===========\n\nRequirements\n============\n\n* unicorn must be in the Gemfile\n\nAttributes\n==========\n\nUsage\n=====\n\n",
+  "description": "Installs/Configures honi"
+}

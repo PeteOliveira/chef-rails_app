@@ -1,0 +1,8 @@
+working_directory "<%= @deploy_to %>/current"
+pid "<%= @deploy_to %>/shared/pids/unicorn.pid"
+stderr_path "<%= @deploy_to %>/shared/log/unicorn.log"
+stdout_path "<%= @deploy_to %>/shared/log/unicorn.log"
+
+listen "<%= @deploy_to %>/shared/unicorn.sock"
+worker_processes 3
+timeout 30
