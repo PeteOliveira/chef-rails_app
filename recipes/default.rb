@@ -20,7 +20,7 @@ def get_verified_databag!(id)
   Chef::Log.info "bag item: #{id}"
   app = data_bag_item('rails_apps', id).to_hash
 
-  required = %w(rails_env user databases precompile seed deploy_to repository deploy_key)
+  required = %w(rails_env databases precompile repository deploy_key)
   ensure_all_in(app, required) { |missing| raise "databag must define key: #{missing}" }
 
   raise "databag[databases][#{app['rails_env']}] must be defined" unless app['databases'].has_key? app['rails_env']
@@ -29,10 +29,16 @@ def get_verified_databag!(id)
   ensure_all_in(app['databases'][app['rails_env']], required) { |missing| raise "databag[databases][#{app['rails_env']}] must define key: #{missing}" }
 
   # default values
+  app['name'] ||= id
+  app['user'] ||= app['name']
   app['group'] ||= app['user'] # group required by deploy_revision
   app['bundle_install_cmd'] ||= 'bundle install --deployment --without development test'
-  app['domain'] ||= 'default'
-  app['service_name'] ||= "app.#{app['domain']}"
+  app['domains'] ||= 'default'
+  app['domains'] = [*(app['domains'])] # ensure array
+  app['seed'] ||= false
+  app['deploy_to'] ||= "/srv/www/#{app['name']}"
+  
+  app['service_name'] ||= "app.#{app['name']}"
 
   app
 end
@@ -86,6 +92,11 @@ end
 
   # create authorized_key file so that the user can login as this user
   if(app['deploy_to'])
+    directory File.expand_path(".ssh", app['deploy_to']) do
+      mode '0600'
+      recursive true
+    end
+
     file File.expand_path(".ssh/authorized_keys", app['deploy_to']) do
       owner app['user']
       group app['group']
@@ -99,7 +110,7 @@ end
   node['rvm']['user_installs'] << {
       'user' => app['user'],
       'home' => app['deploy_to'],
-      'default_ruby' => '1.9.3',
+      'default_ruby' => '2.0.0',
       'default_gems' => ['bundler', 'rake', 'unicorn']
   }
   include_recipe "rvm::user"
@@ -173,7 +184,7 @@ end
   end
 
   # deploy the app
-  deploy_revision app['domain'] do
+  deploy_revision app['name'] do
     repository app['repository']
     revision app['revision']
     deploy_to app['deploy_to']
@@ -294,7 +305,7 @@ end
   #end
 
 
-  link "/etc/nginx/sites-enabled/#{app['domain']}" do
+  link "/etc/nginx/sites-enabled/#{app['name']}" do
     to "#{app['deploy_to']}/nginx.conf"
   end
 
@@ -306,7 +317,7 @@ end
     variables(
         'deploy_to' => app['deploy_to'],
         'rails_env' => app['rails_env'],
-        'desc' => app['domain'],
+        'desc' => "Rails Application: #{app['name']}",
         'user' => app['user']
     )
   end
@@ -326,11 +337,11 @@ end
     owner app['user']
     group app['group']
     notifies :reload, 'service[nginx]'
-    variables('deploy_to' => app['deploy_to'], 'server_name' => app['domain'], 'name' => app['domain'])
+    variables('deploy_to' => app['deploy_to'], 'server_name' => app['domains'].join(" "), 'name' => app['name'])
   end
 
   # the notifies above doesn't seem to trigger
-  execute "nginx reload for app #{app['domain']}" do
+  execute "nginx reload for app #{app['name']}" do
     command 'service nginx reload'
   end
 end

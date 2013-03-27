@@ -36,9 +36,6 @@ Fill the rails_app/data_bags attribute with the apps you want to deploy. Create 
     "id": "same as file name",
     "repository": "git@bitbucket.org:your/repo.git",
     "precompile": true,
-    "seed": true,
-    "user": "app",
-    "deploy_to": "/srv/www/app",
     "rails_env": "production",
     "databases": {
         "production": {
@@ -52,4 +49,14 @@ Fill the rails_app/data_bags attribute with the apps you want to deploy. Create 
     "authorized_key": "id_rsa.pub content"
 }
 ```
+
+optional attributes:
+
+| Attributes | Default Value |
+| ---------- | ------------- |
+| name       | app['id']     |
+| user       | app['name']   |
+| domains    | ['default']   |
+| seed       | false         |
+| deploy_to  | /srv/www/#{app['name']} |
 

@@ -10,9 +10,7 @@
 ### END INIT INFO
 # Author: Robin Wenglewski <robin.wenglewski@arcanio.com>
 
-export RBENV_ROOT="/usr/local/rbenv"
-export PATH="$RBENV_ROOT/bin:$RBENV_ROOT/shims:$PATH"
-export DESC=<%= @desc %>
+export DESC="<%= @desc %>"
 export RAILS_ENV=<%= @rails_env %>
 
 start() {
