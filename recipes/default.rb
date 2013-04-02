@@ -127,7 +127,9 @@ end
   end
 
   # create shared directories
-  %w{ log pids system vendor_bundle }.each do |dir|
+  shared = %w{ log pids system vendor_bundle }
+  shared += (app['shared_directories'] || [])
+  shared.each do |dir|
     directory "#{app['deploy_to']}/shared/#{dir}" do
       owner app['user']
       group app['group']
@@ -219,13 +221,12 @@ end
       end
 
       # links to shared
-      {
+      (app['shared_directories'] || []).inject({}){|h, s| h[s] = s; h }.merge({
           'vendor/bundle' => 'vendor_bundle',
           "config/database.yml" => 'database.yml',
           "config/unicorn.conf" => 'unicorn.conf',
           "log" => 'log'
-      }.each_pair do |k, v|
-
+      }).each_pair do |k, v|
         if File.exists? "#{release_path}/#{k}"
           Chef::Log.warn "link will not be rendered because file already exists: #{release_path}/#{k}"
         else

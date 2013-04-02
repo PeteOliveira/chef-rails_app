@@ -59,4 +59,5 @@ optional attributes:
 | domains    | ['default']   |
 | seed       | false         |
 | deploy_to  | /srv/www/#{app['name']} |
+| shared_directories | [] |
 
