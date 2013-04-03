@@ -7,8 +7,6 @@ version          "0.0.1"
 
 
 
-depends 'postfix'
-
 # https://github.com/phlipper/chef-postgresql, ref: ff499fcff50c1113f74cc32352ebfbede93a06cc
 depends 'postgresql'
 

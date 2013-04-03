@@ -12,7 +12,6 @@ Requirements
 
 **Cookbooks:**
 
-- **postfix**: https://github.com/cookbooks/postfix.git
 - **postgresql**: https://github.com/phlipper/chef-postgresql
 - **nginx**: https://github.com/cookbooks/nginx.git
 - **rvm**: https://github.com/fnichol/chef-rvm

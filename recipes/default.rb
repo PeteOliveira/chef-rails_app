@@ -63,7 +63,7 @@ end
   Chef::Log.info "configuring app: #{app.inspect}"
 
   # load some default recipes
-  %w(nginx postgresql::server postfix).each do |r|
+  %w(nginx postgresql::server).each do |r|
     Chef::Log.info "including recipe: #{r}"
     include_recipe r
   end
