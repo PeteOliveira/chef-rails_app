@@ -52,12 +52,13 @@ Fill the rails_app/data_bags attribute with the apps you want to deploy. Create 
 
 optional attributes:
 
-| Attributes | Default Value |
-| ---------- | ------------- |
-| name       | app['id']     |
-| user       | app['name']   |
-| domains    | ['default']   |
-| seed       | false         |
-| deploy_to  | /srv/www/#{app['name']} |
-| shared_directories | [] |
+| Attributes | Default Value | Description |
+| ---------- | ------------- | ----------- |
+| name       | app['id']     | app name |
+| user       | app['name']   | unix user name, should be uniq cause home directory is created |
+| domains    | ['default']   | domains to which the app responds |
+| seed       | false         | rake seed? |
+| deploy_to  | /srv/www/#{app['name']} | home directory of user and parent dir of app (which resides in `current/` |
+| shared_directories | [] | additionally share this directories |
+| worker_count | 3 | unicorn worker count |
 

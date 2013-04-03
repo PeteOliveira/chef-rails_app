@@ -1,8 +1,8 @@
-working_directory "<%= @deploy_to %>/current"
-pid "<%= @deploy_to %>/shared/pids/unicorn.pid"
-stderr_path "<%= @deploy_to %>/shared/log/unicorn.log"
-stdout_path "<%= @deploy_to %>/shared/log/unicorn.log"
+working_directory "<%= @app['@app['deploy_to']'] %>/current"
+pid "<%= @app['deploy_to'] %>/shared/pids/unicorn.pid"
+stderr_path "<%= @app['deploy_to'] %>/shared/log/unicorn.log"
+stdout_path "<%= @app['deploy_to'] %>/shared/log/unicorn.log"
 
-listen "<%= @deploy_to %>/shared/unicorn.sock"
-worker_processes 3
+listen "<%= @app['deploy_to'] %>/shared/unicorn.sock"
+worker_processes <%= @app['worker_count'] %>
 timeout 30

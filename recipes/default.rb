@@ -39,6 +39,7 @@ def get_verified_databag!(id)
   app['deploy_to'] ||= "/srv/www/#{app['name']}"
   
   app['service_name'] ||= "app.#{app['name']}"
+  app['worker_count'] ||= 3
 
   app
 end
@@ -182,7 +183,7 @@ end
     source 'unicorn.rb.erb'
     owner app['user']
     group app['group']
-    variables('deploy_to' => app['deploy_to'])
+    variables('app' => app)
   end
 
   # deploy the app
@@ -227,13 +228,16 @@ end
           "config/unicorn.conf" => 'unicorn.conf',
           "log" => 'log'
       }).each_pair do |k, v|
+        file_exists = File.exists? "#{release_path}/#{k}"
+        Chef::Log.info "#{release_path}/#{k} exists? #{file_exists}"
+
         if File.exists? "#{release_path}/#{k}"
           Chef::Log.warn "link will not be rendered because file already exists: #{release_path}/#{k}"
         else
           link "#{release_path}/#{k}" do
             to "#{app['deploy_to']}/shared/#{v}"
-            owner app['user'].to_s
-            group app['group'].to_s
+            owner app['user']
+            group app['group']
           end
         end
       end
@@ -256,6 +260,8 @@ end
           :variables => {:app => app}
       )
 
+      Chef::Log.info "#{release_path}/log exists? #{File.exists? "#{release_path}/log"}"
+
 
       rvm_shell 'run rake db:migrate' do
         code "bundle exec rake db:migrate"
@@ -270,10 +276,14 @@ end
     migration_command "bundle exec rake db:schema:load"
 
     # we do the symlinking in before_migrate
+    purge_before_symlink []
+    create_dirs_before_symlink []
     symlinks({})
     symlink_before_migrate({})
 
     before_restart do
+      Chef::Log.info "#{release_path}/log exists? #{File.exists? "#{release_path}/log"}"
+
 
       if app['seed']
         rvm_shell "seed data" do
@@ -294,17 +304,13 @@ end
         end
       end
 
+      Chef::Log.info "#{release_path}/log exists? #{File.exists? "#{release_path}/log"}"
+
       link "#{app['deploy_to']}/current" do
         to "#{release_path}"
       end
     end
   end
-
-
-  #file "/etc/nginx/sites-enabled/default" do
-  #  action :delete
-  #end
-
 
   link "/etc/nginx/sites-enabled/#{app['name']}" do
     to "#{app['deploy_to']}/nginx.conf"
