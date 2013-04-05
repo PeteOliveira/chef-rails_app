@@ -25,6 +25,22 @@ Attributes
 
 - `:rails_app => {:data_bags => %w()}``
 
+Chef Callbacks
+==============
+
+The Rails recipe has a couple of chef callback which allow your app to customize the environment.
+The following files will be included in the recipe at runtime:
+
+```
+/deploy/hooks/before_bundle_install.rb
+/deploy/hooks/after_bundle_install.rb
+/deploy/hooks/before_restart.rb
+````
+
+With it, you receive the `variables` variable, which is a hash looking like that: `variables['app']`.
+
+You can use the callbacks for installing packages, running background jobs, etc.
+
 Usage
 =====
 

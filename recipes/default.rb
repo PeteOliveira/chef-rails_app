@@ -203,17 +203,8 @@ end
       blast = app
       extend RailsApp
 
+      # enrich app information for callbacks
       app['release_path'] = release_path
-
-      # remove log directory, gets linked later
-      # using directory command did not work
-      if File.directory?("#{release_path}/log")
-        Chef::Log.info "removing log dir: #{release_path}/log"
-        FileUtils.rm_rf "#{release_path}/log"
-      else
-        Chef::Log.info "no directory: #{release_path}/log"
-      end
-
 
       # create vendor directory
       directory "#{release_path}/vendor" do
@@ -244,7 +235,7 @@ end
 
       run_callback(
           :file => "#{release_path}/deploy/hooks/before_bundle_install.rb",
-          :variables => {:app => app}
+          :variables => {'app' => app}
       )
 
       rvm_shell "run bundle install" do
@@ -257,11 +248,10 @@ end
 
       run_callback(
           :file => "#{release_path}/deploy/hooks/after_bundle_install.rb",
-          :variables => {:app => app}
+          :variables => {'app' => app}
       )
 
       Chef::Log.info "#{release_path}/log exists? #{File.exists? "#{release_path}/log"}"
-
 
       rvm_shell 'run rake db:migrate' do
         code "bundle exec rake db:migrate"
@@ -282,6 +272,11 @@ end
     symlink_before_migrate({})
 
     before_restart do
+      run_callback(
+          :file => "#{release_path}/deploy/hooks/before_restart.rb",
+          :variables => {'app' => app}
+      )
+
       Chef::Log.info "#{release_path}/log exists? #{File.exists? "#{release_path}/log"}"
 
 
