@@ -73,7 +73,9 @@ end
 
   # create parent of deploy directory
   directory File.expand_path("..", app['deploy_to']) do
-    mode '0777'
+    mode '0771'
+    owner 'root'
+    group 'root'
     recursive true
   end
 
