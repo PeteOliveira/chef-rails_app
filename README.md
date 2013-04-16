@@ -76,4 +76,5 @@ optional attributes:
 | deploy_to  | /srv/www/#{app['name']} | home directory of user and parent dir of app (which resides in `current/` |
 | shared_directories | [] | additionally share this directories |
 | worker_count | 3 | unicorn worker count |
+| revision | HEAD | The revision to be checked out. This can be symbolic, like HEAD or it can be a source control management-specific revision identifier. |
 
