@@ -41,6 +41,16 @@ def get_verified_databag!(id)
   app['service_name'] ||= "app.#{app['name']}"
   app['worker_count'] ||= 3
 
+  app['shared_directories'] ||= {
+      'vendor/bundle' => 'vendor_bundle',
+      "config/database.yml" => 'database.yml',
+      "config/unicorn.conf" => 'unicorn.conf',
+      "log" => 'log'
+  }
+
+
+  app['shared_directories'].merge!(app['additional_shared_directories'] || {})
+
   app
 end
 
@@ -215,18 +225,39 @@ end
       end
 
       # links to shared
-      (app['shared_directories'] || []).inject({}){|h, s| h[s] = s; h }.merge({
-          'vendor/bundle' => 'vendor_bundle',
-          "config/database.yml" => 'database.yml',
-          "config/unicorn.conf" => 'unicorn.conf',
-          "log" => 'log'
-      }).each_pair do |k, v|
-        file_exists = File.exists? "#{release_path}/#{k}"
-        Chef::Log.info "#{release_path}/#{k} exists? #{file_exists}"
+      (app['all_shared_directories']).each_pair do |k, v|
+
+        v = {'file' => v} unless v.is_a? Hash
+        v['on_exists'] ||= :raise # can be :ignore, :raise, :log, :overwrite
 
         if File.exists? "#{release_path}/#{k}"
-          Chef::Log.warn "link will not be rendered because file already exists: #{release_path}/#{k}"
+          msg = "link will not be rendered because file already exists: #{release_path}/#{k}"
+          case v['on_exists']
+            when :ignore
+              do_link = false
+            when :raise
+              raise msg
+            when :log
+              Chef::Log.warn msg
+              do_link = false
+            when :overwrite
+              do_remove_first = true
+              do_link = true
+            else
+              raise "unknown on_exists value: #{v['on_exists']}"
+          end
         else
+          do_link = true
+        end
+
+        if do_link
+          if do_remove_first
+            directory "#{release_path}/#{k}" do
+              action :delete
+              recursive true
+            end
+          end
+
           link "#{release_path}/#{k}" do
             to "#{app['deploy_to']}/shared/#{v}"
             owner app['user']
