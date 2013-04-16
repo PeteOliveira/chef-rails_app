@@ -74,11 +74,7 @@ optional attributes:
 | domains    | ['default']   | domains to which the app responds |
 | seed       | false         | rake seed? |
 | deploy_to  | /srv/www/#{app['name']} | home directory of user and parent dir of app (which resides in `current/` |
-| shared_directories | {'vendor/bundle' => 'vendor_bundle',
-                              "config/database.yml" => 'database.yml',
-                              "config/unicorn.conf" => 'unicorn.conf',
-                              "log" => 'log'} | overwrite if you'd like to define custom shared directories.
-                              The value of the Hash can be a string or a hash that looks like this: {'file': ..., 'on_exists' => ('raise' (default) | 'ignore' | 'log' | 'overwrite')} |
+| shared_directories | {'vendor/bundle' => 'vendor_bundle', "config/database.yml" => 'database.yml', "config/unicorn.conf" => 'unicorn.conf', "log" => 'log'} | overwrite if you'd like to define custom shared directories. The value of the Hash can be a string or a hash that looks like this: {'file': ..., 'on_exists' => ('raise' (default) or 'ignore' or 'log' or 'overwrite')} |
 | additional_shared_directories | {} | additionally share this directories that are merged in shared_directories. Use this if you want to keep the default shared directories. |
 | worker_count | 3 | unicorn worker count |
 | revision | HEAD | The revision to be checked out. This can be symbolic, like HEAD or it can be a source control management-specific revision identifier. |
