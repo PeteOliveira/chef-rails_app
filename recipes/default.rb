@@ -41,15 +41,24 @@ def get_verified_databag!(id)
   app['service_name'] ||= "app.#{app['name']}"
   app['worker_count'] ||= 3
 
+
+
   app['shared_directories'] ||= {
       'vendor/bundle' => 'vendor_bundle',
       "config/database.yml" => 'database.yml',
       "config/unicorn.conf" => 'unicorn.conf',
-      "log" => 'log'
+      "log" => true
   }
 
-
   app['shared_directories'].merge!(app['additional_shared_directories'] || {})
+
+  # transform shared_directories
+  app['shared_directories'].each do |k, v|
+
+    app['shared_directories'][k] = k if app['shared_directories'][k] == true
+
+    app['shared_directories'][k] = {"file" => app['shared_directories'][k], 'on_exists' => 'raise' } if app['shared_directories'][k].is_a?(String)
+  end
 
   app
 end
@@ -119,12 +128,11 @@ end
   end
 
   # install rvm for user
-  node['rvm']['user_installs'] ||= []
-  node['rvm']['user_installs'] << {
+  node.default['rvm']['user_installs'] << {
       'user' => app['user'],
       'home' => app['deploy_to'],
       'default_ruby' => '2.0.0',
-      'default_gems' => ['bundler', 'rake', 'unicorn']
+      'default_gems' => %w(bundler rake unicorn)
   }
   include_recipe "rvm::user"
 
@@ -137,18 +145,6 @@ end
     group app['group']
     mode '0755'
     recursive true
-  end
-
-  # create shared directories
-  shared = %w{ log pids system vendor_bundle }
-  shared += (app['shared_directories'] || [])
-  shared.each do |dir|
-    directory "#{app['deploy_to']}/shared/#{dir}" do
-      owner app['user']
-      group app['group']
-      mode '0755'
-      recursive true
-    end
   end
 
   # database.yml
@@ -225,29 +221,39 @@ end
       end
 
       # links to shared
-      (app['all_shared_directories']).each_pair do |k, v|
-
-        v = {'file' => v} unless v.is_a? Hash
-        v['on_exists'] ||= :raise # can be :ignore, :raise, :log, :overwrite
+      (app['shared_directories']).each_pair do |k, v|
+        Chef::Log.info "processing shared directory: #{k} with value #{v.inspect}"
+        do_link = true
+        do_remove_first = false
 
         if File.exists? "#{release_path}/#{k}"
           msg = "link will not be rendered because file already exists: #{release_path}/#{k}"
           case v['on_exists']
-            when :ignore
+            when 'ignore'
               do_link = false
-            when :raise
+            when 'raise'
               raise msg
-            when :log
+            when 'log'
               Chef::Log.warn msg
               do_link = false
-            when :overwrite
+            when 'overwrite'
               do_remove_first = true
-              do_link = true
             else
               raise "unknown on_exists value: #{v['on_exists']}"
           end
         else
-          do_link = true
+
+        end
+
+        # create shared directories
+        unless v['file']['.']
+          dir = v['file']
+          directory "#{app['deploy_to']}/shared/#{dir}" do
+            owner app['user']
+            group app['group']
+            mode '0755'
+            recursive true
+          end
         end
 
         if do_link
@@ -259,7 +265,7 @@ end
           end
 
           link "#{release_path}/#{k}" do
-            to "#{app['deploy_to']}/shared/#{v}"
+            to "#{app['deploy_to']}/shared/#{v['file']}"
             owner app['user']
             group app['group']
           end
