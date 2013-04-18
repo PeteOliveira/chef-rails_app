@@ -139,13 +139,17 @@ end
   create_db app
 
 
-  # create shared directory
-  directory "#{app['deploy_to']}/shared" do
-    owner app['user']
-    group app['group']
-    mode '0755'
-    recursive true
+
+  # all is required: log for nginx logs, pids for unicorn pids, shared anyway for linking
+  %w(shared shared/log shared/pids).each do |dir|
+    directory "#{app['deploy_to']}/#{dir}" do
+      owner app['user']
+      group app['group']
+      mode '0755'
+      recursive true
+    end
   end
+
 
   # database.yml
   Chef::Log.info "creating database.yml: #{app['databases'].inspect}"
