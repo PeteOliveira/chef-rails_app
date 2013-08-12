@@ -37,7 +37,7 @@ def get_verified_databag!(id)
   app['domains'] = [*(app['domains'])] # ensure array
   app['seed'] ||= false
   app['deploy_to'] ||= "/srv/www/#{app['name']}"
-  
+
   app['service_name'] ||= "app.#{app['name']}"
   app['worker_count'] ||= 3
 
@@ -338,6 +338,7 @@ end
           code "bundle exec rake assets:precompile"
           user app['user']
           group app['group']
+          environment 'RAILS_ENV' => app['rails_env'].to_s
           cwd release_path
         end
       end
